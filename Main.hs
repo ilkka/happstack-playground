@@ -17,14 +17,14 @@ main = serve Nothing myApp
 
 myApp :: ServerPart Response
 myApp = msum
-  [ dir "echo"    $ echo
-  , dir "query"   $ queryParams
-  , dir "form"    $ formPage
-  , dir "fortune" $ fortune
-  , dir "files"   $ fileServing
-  , dir "upload"  $ upload
-  , homePage
-  ]
+        [ dir "echo"    $ echo
+        , dir "query"   $ queryParams
+        , dir "form"    $ formPage
+        , dir "fortune" $ fortune
+        , dir "files"   $ fileServing
+        , dir "upload"  $ upload
+        , homePage
+        ]
 
 template :: Text -> Html -> Response
 template title body = toResponse $
@@ -55,10 +55,30 @@ echo = path $ \(msg :: String) ->
     p "Change the URL to say something else."
 
 queryParams :: ServerPart Response
-queryParams = ok $ template "Query params" $ do H.h1 "Query params"
+queryParams =
+  do mFoo <- optional $ lookText "foo"
+     ok $ template "Query parameters" $ do
+       p $ "foo is " >> toHtml (show mFoo)
+       p $ "change the URL param to get something else."
 
 formPage :: ServerPart Response
-formPage = ok $ template "Form handling" $ do H.h1 "Form handling"
+formPage = msum [viewForm, processForm]
+  where
+    viewForm :: ServerPart Response
+    viewForm =
+      do method GET
+         ok $ template "form" $
+           form ! action "/form" ! enctype "multipart/form-data" ! A.method "POST" $ do
+             label ! A.for "msg" $ "Say something clever"
+             input ! type_ "text" ! A.id "msg" ! name "msg"
+             input ! type_ "submit" ! value "Say it!"
+    processForm :: ServerPart Response
+    processForm =
+      do method POST
+         msg <- lookText "msg"
+         ok $ template "form" $ do
+           H.p "You said:"
+           H.p (toHtml msg)
 
 fortune :: ServerPart Response
 fortune = ok $ template "(Fortune) cookies" $ do H.h1 "(Fortune) cookies"
