@@ -20,6 +20,6 @@ executable crashcourse
   main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.6 && <4.7, happstack-lite, blaze-html, text
+  build-depends:       base >=4.6 && <4.7, happstack-server, blaze-html, text
   -- hs-source-dirs:      
   default-language:    Haskell2010
